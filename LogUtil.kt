@@ -1,4 +1,3 @@
-package com.realcloud.loochadroid.util
 
 import android.util.Log
 import java.io.FileOutputStream
