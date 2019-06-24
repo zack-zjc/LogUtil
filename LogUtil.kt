@@ -24,19 +24,32 @@ object LogUtil {
   }
 
   //展示log的标签
-  private const val SHOW_LOG = false
+  private var SHOW_LOG = true
 
   //打印日志级别
   private var logLevel = LogLevel.VERBOSE
 
   //日志中的时间显示格式
-  private val logTimeFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
+  private val logTimeFormat :ThreadLocal<SimpleDateFormat> by lazy {
+    object : ThreadLocal<SimpleDateFormat>() {
+      override fun initialValue(): SimpleDateFormat? {
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA)
+      }
+    }
+  }
 
   //日志队列
   private var mLogBlockingQueue = LinkedBlockingQueue<Pair<String,String>>()
 
   init {
     LogDumper().start()
+  }
+
+  /**
+   * 设置是否展示log
+   */
+  fun setShowLog(showLog:Boolean){
+    this.SHOW_LOG = showLog
   }
 
   /**
@@ -85,10 +98,10 @@ object LogUtil {
             element.className == LogUtil::class.java.name) {
           continue
         }
-        return "[${logTimeFormat.format(Date())}-${element.className}-${element.methodName}-Line:${element.lineNumber}]"
+        return "[${logTimeFormat.get().format(Date()).toString()}-${element.className}-${element.methodName}-Line:${element.lineNumber}]"
       }
     }
-    return "[${logTimeFormat.format(Date())}]"
+    return "[${logTimeFormat.get().format(Date()).toString()}]"
   }
 
   /**
@@ -166,7 +179,7 @@ object LogUtil {
           if (pairInfo != null){
             val fileName = pairInfo.first
             val logInfo = pairInfo.second
-            val logFile = FileUtil.createFile("sdcard/log/$fileName.txt")
+            val logFile = FileUtil.createFile("sdcard/log/$fileName.zip")
             var gzipOutputStream: GZIPOutputStream? = null
             try {
               gzipOutputStream = GZIPOutputStream(FileOutputStream(logFile, true))
